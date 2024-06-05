@@ -1,4 +1,4 @@
-﻿//opencv 필기체 숫자인식 프로젝트
+//opencv 필기체 숫자인식 프로젝트
 //readme파일 업로드시 정지 당하기 떄문에 주석으로 대체
 #include<iostream>
 #include<opencv2/opencv.hpp>
@@ -10,7 +10,8 @@ void Roadfile(Mat& src);//road 함수선언
 void Clear(Mat& src);//입력창 삭제함수선언
 void Run(Mat& src);//인식 함수 선언
 void Exit();//종료함수 선언
-void Contour(Mat& src);
+void Contour(Mat& src);//외각선 검출함수 선언
+void Contour2(Mat& src);//2번째특성검출 함수 선언
 void on_mouse(int event, int x, int y, int flags, void* userdata);//마우스이벤트 함수선언
 int main(void)//메인함수
 {
@@ -92,6 +93,14 @@ void on_mouse(int event, int x, int y, int flags, void* userdata)//마우스 콜
 		{
 			Exit();//함수 호출후 프로그램 종료
 		}
+		else if (ptPrev.inside(Rect(700, 0, 200, 100)))
+		{
+			Contour(src);//특성함수 호출
+		}
+		else if (ptPrev.inside(Rect(700, 100, 200, 100)))
+		{
+			Contour2(src);//특성함수 호출
+		}
 		break;
 	}
 	case EVENT_MOUSEMOVE://마우스를 움직일때
@@ -144,5 +153,9 @@ void Exit()//종료함수 정의
 }
 void Contour(Mat& src)
 {
-	   
+	cout << "아직구현중" << endl;
+}
+void Contour2(Mat& src)
+{
+	cout << "아직구현중" << endl;
 }
