@@ -10,7 +10,7 @@ void Roadfile(Mat& src);//road 함수선언
 void Clear(Mat& src);//입력창 삭제함수선언
 void Run(Mat& src);//인식 함수 선언
 void Exit();//종료함수 선언
-void Contour(Mat& src);//외각선 검출함수 선언
+int Contour(Mat& src);//외각선 검출함수 선언
 void Contour2(Mat& src);//2번째특성검출 함수 선언
 void on_mouse(int event, int x, int y, int flags, void* userdata);//마우스이벤트 함수선언
 int main(void)//메인함수
@@ -32,12 +32,12 @@ void menu(Mat& img)//메뉴함수 정의
 	rectangle(src, Rect(0, 0, 700, 500), Scalar(0, 0, 0), 1);//윈도우창에 사각형을 그림
 	line(src, Point(499, 0), Point(499, 499), Scalar(0, 0, 0), 1);//숫자입력창과 옵션을 구분하는 라인
 	for (int i = 1; i <= 4; ++i) {//save,load,clear,run,exit를 구분하는 라인
-		line(src, Point(500, i * 100-1), Point(699, i * 100-1), Scalar(0, 0, 0), 1);
+		line(src, Point(500, i * 100 - 1), Point(699, i * 100 - 1), Scalar(0, 0, 0), 1);
 	}
-	for (int i = 0; i <200;)
+	for (int i = 0; i < 200;)
 	{
 		line(src, Point(700, i), Point(900, i), Scalar::all(0), 1);
-		line(src, Point(900, i), Point(900, i +100), Scalar::all(0), 1);
+		line(src, Point(900, i), Point(900, i + 100), Scalar::all(0), 1);
 		if (i == 0)i += 99;
 		else i += 100;
 	}
@@ -151,9 +151,11 @@ void Exit()//종료함수 정의
 	exit(1);//프로그램 종료함수 호출
 	return;
 }
-void Contour(Mat& src)
+int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)
 {
+	int count_contour = 0;
 	cout << "아직구현중" << endl;
+	return count_contour;
 }
 void Contour2(Mat& src)
 {
