@@ -158,7 +158,7 @@ int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)닫기연
 	threshold(dst, edge, 150, 255, THRESH_OTSU);
 	vector<vector<Point>> contours;
 	findContours(edge, contours, RETR_LIST, CHAIN_APPROX_NONE);
-	cout << "외각선의 개수:" << contours.size()-1 << endl;
+	cout << "외각선의 개수:" << contours.size()-1 << endl;//size -1은 외각 배경선을 제외
 	return count_contour;
 }
 void Contour2(Mat& src)
