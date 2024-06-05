@@ -41,7 +41,7 @@ void menu(Mat& img)//메뉴함수 정의
 		if (i == 0)i += 99;
 		else i += 100;
 	}
-	String massage[] = { "Save","Load","Clear","Run","Exit","contour","contour" };//ui를 배열로 저장
+	String massage[] = { "Save","Load","Clear","Run","Exit","contour","contour2" };//ui를 배열로 저장
 	int y = 0;//반복하면서 100씩더할 예정
 	Mat dst = src(Rect(500, 0, 200, 500));//문자열을 윈도우에 쓰기위해서 
 	Size dstsize = dst.size();//dst의 사이즈를 저장할 객체
@@ -62,7 +62,6 @@ void menu(Mat& img)//메뉴함수 정의
 		putText(dst2, massage[i], org, FONT_HERSHEY_TRIPLEX, 1.0, 1.0, 0);
 		y += 100;
 	}
-
 }
 void on_mouse(int event, int x, int y, int flags, void* userdata)//마우스 콜백함수 정의
 {
@@ -151,10 +150,15 @@ void Exit()//종료함수 정의
 	exit(1);//프로그램 종료함수 호출
 	return;
 }
-int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)
+int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)닫기연산을 수행하여 정확도를 높여야함
 {
 	int count_contour = 0;
-	cout << "아직구현중" << endl;
+	Mat dst,edge;
+	cvtColor(src(Rect(0,0,500,500)), dst, COLOR_BGR2GRAY);
+	threshold(dst, edge, 150, 255, THRESH_OTSU);
+	vector<vector<Point>> contours;
+	findContours(edge, contours, RETR_LIST, CHAIN_APPROX_NONE);
+	cout << "외각선의 개수:" << contours.size()-1 << endl;
 	return count_contour;
 }
 void Contour2(Mat& src)
