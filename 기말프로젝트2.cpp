@@ -10,8 +10,9 @@ void Roadfile(Mat& src);//road 함수선언
 void Clear(Mat& src);//입력창 삭제함수선언
 void Run(Mat& src);//인식 함수 선언
 void Exit();//종료함수 선언
+Mat bounding_src(Mat& src);
 int Contour(Mat& src);//외각선 검출함수 선언
-void Contour2(Mat& src);//2번째특성검출 함수 선언
+float aspectRatio(const Mat& src);//바운딩 박스의 가로 세로 비율 계산 함수 선언
 void on_mouse(int event, int x, int y, int flags, void* userdata);//마우스이벤트 함수선언
 int main(void)//메인함수
 {
@@ -29,8 +30,8 @@ int main(void)//메인함수
 void menu(Mat& img)//메뉴함수 정의
 {
 	Mat src = img;
-	rectangle(src, Rect(0, 0, 700, 500), Scalar(0, 0, 0), 1);//윈도우창에 사각형을 그림
-	line(src, Point(499, 0), Point(499, 499), Scalar(0, 0, 0), 1);//숫자입력창과 옵션을 구분하는 라인
+	rectangle(src,Rect(500, 0, 400, 500), Scalar::all(0), 1);
+	line(src, Point(700, 0), Point(700,499), Scalar(0, 0, 0), 1);//숫자입력창과 옵션을 구분하는 라인
 	for (int i = 1; i <= 4; ++i) {//save,load,clear,run,exit를 구분하는 라인
 		line(src, Point(500, i * 100 - 1), Point(699, i * 100 - 1), Scalar(0, 0, 0), 1);
 	}
@@ -41,7 +42,7 @@ void menu(Mat& img)//메뉴함수 정의
 		if (i == 0)i += 99;
 		else i += 100;
 	}
-	String massage[] = { "Save","Load","Clear","Run","Exit","contour","contour2" };//ui를 배열로 저장
+	String massage[] = { "Save","Load","Clear","Run","Exit","contour","aspectRatio" };//ui를 배열로 저장
 	int y = 0;//반복하면서 100씩더할 예정
 	Mat dst = src(Rect(500, 0, 200, 500));//문자열을 윈도우에 쓰기위해서 
 	Size dstsize = dst.size();//dst의 사이즈를 저장할 객체
@@ -98,7 +99,7 @@ void on_mouse(int event, int x, int y, int flags, void* userdata)//마우스 콜
 		}
 		else if (ptPrev.inside(Rect(700, 100, 200, 100)))
 		{
-			Contour2(src);//특성함수 호출
+			aspectRatio(src);//특성함수 호출
 		}
 		break;
 	}
@@ -150,18 +151,31 @@ void Exit()//종료함수 정의
 	exit(1);//프로그램 종료함수 호출
 	return;
 }
+Mat bounding_src(Mat& src)
+{
+
+}
 int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)닫기연산을 수행하여 정확도를 높여야함
 {
 	int count_contour = 0;
-	Mat dst,edge;
-	cvtColor(src(Rect(0,0,500,500)), dst, COLOR_BGR2GRAY);
+	Mat dst, edge,;
+	cvtColor(src(Rect(0, 0, 500, 500)), dst, COLOR_BGR2GRAY);
 	threshold(dst, edge, 150, 255, THRESH_OTSU);
 	vector<vector<Point>> contours;
 	findContours(edge, contours, RETR_LIST, CHAIN_APPROX_NONE);
-	cout << "외각선의 개수:" << contours.size()-1 << endl;//size -1은 외각 배경선을 제외
+	cout << "외각선의 개수:" << contours.size() << endl;//size -1은 외각 배경선을 제외
 	return count_contour;
 }
-void Contour2(Mat& src)
-{
-	cout << "아직구현중" << endl;
+float aspectRatio(const Mat& src) {
+	Mat gray, binImg;
+	cvtColor(src(Rect(0, 0, 500, 500)), gray, COLOR_BGR2GRAY);
+	threshold(gray, binImg, 150, 255, THRESH_BINARY_INV);
+	vector<vector<Point>> contours;
+	findContours(binImg, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+	if (!contours.empty()) {
+		Rect boundingBox = boundingRect(contours[0]);
+		cout<< (float)boundingBox.width / (float)boundingBox.height<<endl;
+		return (float)boundingBox.width / (float)boundingBox.height;
+	}
+	return 0.0;
 }
