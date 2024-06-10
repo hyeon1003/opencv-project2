@@ -1,181 +1,324 @@
-//opencv 필기체 숫자인식 프로젝트
-//readme파일 업로드시 정지 당하기 떄문에 주석으로 대체
-#include<iostream>
-#include<opencv2/opencv.hpp>
+#include <iostream>
+#include <opencv2/opencv.hpp>
 using namespace std;
 using namespace cv;
-void menu(Mat& img);//기본UI창 함수선언
-void Savefile(Mat& src);//save함수선언
-void Roadfile(Mat& src);//road 함수선언
-void Clear(Mat& src);//입력창 삭제함수선언
-void Run(Mat& src);//인식 함수 선언
-void Exit();//종료함수 선언
+void menu(Mat& img);
+void Savefile(Mat& src);
+void Roadfile(Mat& src);
+void Clear(Mat& src);
+void Run(Mat& src);
+void Exit();
 Mat bounding_src(Mat& src);
-int Contour(Mat& src);//외각선 검출함수 선언
-float aspectRatio(const Mat& src);//바운딩 박스의 가로 세로 비율 계산 함수 선언
-void on_mouse(int event, int x, int y, int flags, void* userdata);//마우스이벤트 함수선언
-int main(void)//메인함수
+Point CenterPt(Mat& src);
+int Contour(Mat& src);
+int left(Mat src);
+int top(Mat src);
+void on_mouse(int event, int x, int y, int flags, void* userdata);
+int main(void)
 {
-	Mat src(500, 900, CV_8UC3, Scalar(255, 255, 255));//윈도우크기 500*700
-	menu(src);//메뉴함수 호출
-	namedWindow("src");//마우스이벤트 함수사용을 위해 미리 윈도우 생성
-	setMouseCallback("src", on_mouse, &src);//마우스 함수 호출
-	while (true)//무한반복문
-	{
-		imshow("src", src);//이미지 최신화
-		waitKey(1);//0.001초마다
-	}
-	return 0;//정상적인 종료
+    Mat src(500, 900, CV_8UC3, Scalar(255, 255, 255));
+    menu(src);
+    namedWindow("src");
+    setMouseCallback("src", on_mouse, &src);
+    while (true)
+    {
+        imshow("src", src);
+        waitKey(1);
+    }
+    return 0;
 }
-void menu(Mat& img)//메뉴함수 정의
+void menu(Mat& img)
 {
-	Mat src = img;
-	rectangle(src,Rect(500, 0, 400, 500), Scalar::all(0), 1);
-	line(src, Point(700, 0), Point(700,499), Scalar(0, 0, 0), 1);//숫자입력창과 옵션을 구분하는 라인
-	for (int i = 1; i <= 4; ++i) {//save,load,clear,run,exit를 구분하는 라인
-		line(src, Point(500, i * 100 - 1), Point(699, i * 100 - 1), Scalar(0, 0, 0), 1);
-	}
-	for (int i = 0; i < 200;)
-	{
-		line(src, Point(700, i), Point(900, i), Scalar::all(0), 1);
-		line(src, Point(900, i), Point(900, i + 100), Scalar::all(0), 1);
-		if (i == 0)i += 99;
-		else i += 100;
-	}
-	String massage[] = { "Save","Load","Clear","Run","Exit","contour","aspectRatio" };//ui를 배열로 저장
-	int y = 0;//반복하면서 100씩더할 예정
-	Mat dst = src(Rect(500, 0, 200, 500));//문자열을 윈도우에 쓰기위해서 
-	Size dstsize = dst.size();//dst의 사이즈를 저장할 객체
-	for (int i = 0; i < 5; i++)//UI에 아까저장한 배열을 이용하여 가운데에 문자열 출력
-	{
-		Size sizeText = getTextSize(massage[i], FONT_HERSHEY_TRIPLEX, 1.0, 1, 0);
-		Point org((dstsize.width - sizeText.width) / 2, (dstsize.height / 5 + sizeText.height) / 2 + y);//가운데에 문자열을 출력하기 위해 계산 y에 100씩 더해서 ui에 가운데출력
-		putText(dst, massage[i], org, FONT_HERSHEY_TRIPLEX, 1.0, 1);//문자열 출력함수 호출
-		y += 100;//아래로 100씩 차이가 나므로 100씩더해줌
-	}
-	y = 0;
-	Mat dst2 = src(Rect(700, 0, 200, 200));//새로운 특징추출
-	Size dst2size = dst2.size();
-	for (int i = 5; i < 7; i++)
-	{
-		Size sizeText = getTextSize(massage[i], FONT_HERSHEY_TRIPLEX, 1.0, 1.0, 0);
-		Point org((dst2size.width - sizeText.width) / 2, (dst2size.height / 2 + sizeText.height) / 2 + y);
-		putText(dst2, massage[i], org, FONT_HERSHEY_TRIPLEX, 1.0, 1.0, 0);
-		y += 100;
-	}
+    Mat src = img;
+    rectangle(src, Rect(500, 0, 400, 500), Scalar::all(0), 1);
+    line(src, Point(700, 0), Point(700, 499), Scalar(0, 0, 0), 1);
+    for (int i = 1; i <= 4; ++i) {
+        line(src, Point(500, i * 100 - 1), Point(699, i * 100 - 1), Scalar(0, 0, 0), 1);
+    }
+    for (int i = 0; i < 400;) {
+        line(src, Point(700, i), Point(900, i), Scalar::all(0), 1);
+        line(src, Point(900, i), Point(900, i + 100), Scalar::all(0), 1);
+        if (i == 0)i += 99;
+        else i += 100;
+    }
+    String massage[] = { "Save", "Load", "Clear", "Run", "Exit", "contour", "CenterPt", "CfXcontour", "CfYcontour" };
+    int y = 0;
+    Mat dst = src(Rect(500, 0, 200, 500));
+    Size dstsize = dst.size();
+    for (int i = 0; i < 5; i++) {
+        Size sizeText = getTextSize(massage[i], FONT_HERSHEY_TRIPLEX, 1.0, 1, 0);
+        Point org((dstsize.width - sizeText.width) / 2, (dstsize.height / 5 + sizeText.height) / 2 + y);
+        putText(dst, massage[i], org, FONT_HERSHEY_TRIPLEX, 1.0, 1);
+        y += 100;
+    }
+    y = 0;
+    Mat dst2 = src(Rect(700, 0, 200, 400));
+    Size dst2size = dst2.size();
+    for (int i = 5; i < 9; i++) {
+        Size sizeText = getTextSize(massage[i], FONT_HERSHEY_TRIPLEX, 1.0, 1.0, 0);
+        Point org((dst2size.width - sizeText.width) / 2, (dst2size.height / 4 + sizeText.height) / 2 + y);
+        putText(dst2, massage[i], org, FONT_HERSHEY_TRIPLEX, 1.0, 1.0, 0);
+        y += 100;
+    }
 }
-void on_mouse(int event, int x, int y, int flags, void* userdata)//마우스 콜백함수 정의
+void on_mouse(int event, int x, int y, int flags, void* userdata)
 {
-	Mat src = *(Mat*)userdata;//원본 이미지를 src에 저장
-	static Point ptPrev(-1, -1);//이전 위치를 저장하는 객체
-	switch (event)
-	{
-	case EVENT_LBUTTONDOWN://마우스 왼쪽 버튼이 눌렸을떄
-	{
-		ptPrev = Point(x, y);//이전 버튼위치를 현재위치로 저장
-		if (ptPrev.inside(Rect(500, 0, 200, 100)))//save 위치일때
-		{
-			Savefile(src);//함수호출하여 저장
-		}
-		else if (ptPrev.inside(Rect(500, 100, 200, 100)))//load 위치일때
-		{
-			Roadfile(src);//함수호출하여 파일을 load
-		}
-		else if (ptPrev.inside(Rect(500, 200, 200, 100)))//clear 위치일때
-		{
-			Clear(src);//함수호출후 숫자입력창 clear
-		}
-		else if (ptPrev.inside(Rect(500, 300, 200, 100)))//run 위치일때
-		{
-			Run(src);//함수 호출후 인식
-		}
-		else if (ptPrev.inside(Rect(500, 400, 200, 100)))//exit 위치일때
-		{
-			Exit();//함수 호출후 프로그램 종료
-		}
-		else if (ptPrev.inside(Rect(700, 0, 200, 100)))
-		{
-			Contour(src);//특성함수 호출
-		}
-		else if (ptPrev.inside(Rect(700, 100, 200, 100)))
-		{
-			aspectRatio(src);//특성함수 호출
-		}
-		break;
-	}
-	case EVENT_MOUSEMOVE://마우스를 움직일때
-	{
-		if (flags & EVENT_FLAG_LBUTTON) {//왼쪽 버튼이 눌려있으면
-			if (Rect(0, 0, 500, 500).contains(ptPrev) && Rect(0, 0, 500, 500).contains(Point(x, y))) {//숫자입력창500*500 위치일때(과거,현재)
-				line(src, ptPrev, Point(x, y), Scalar::all(0), 5, LINE_AA, 0);//이전위치와 현재위치를 라인으로 그려줌 
-				ptPrev = Point(x, y);//이전위치를 현재위치로 저장
-			}
-		}
-		break;
-	}
-	}
+    Mat src = *(Mat*)userdata;
+    static Point ptPrev(-1, -1);
+    switch (event)
+    {
+    case EVENT_LBUTTONDOWN:
+    {
+        ptPrev = Point(x, y);
+        if (ptPrev.inside(Rect(500, 0, 200, 100))) {
+            left(src);
+            Savefile(src);
+        }
+        else if (ptPrev.inside(Rect(500, 100, 200, 100))) {
+            Roadfile(src);
+        }
+        else if (ptPrev.inside(Rect(500, 200, 200, 100))) {
+            Clear(src);
+        }
+        else if (ptPrev.inside(Rect(500, 300, 200, 100))) {
+            Run(src);
+        }
+        else if (ptPrev.inside(Rect(500, 400, 200, 100))) {
+            Exit();
+        }
+        else if (ptPrev.inside(Rect(700, 0, 200, 100))) {
+            Contour(src);
+        }
+        else if (ptPrev.inside(Rect(700, 100, 200, 100))) {
+            Point cf = CenterPt(src);
+            cout << "X:" << cf.x << "%" << endl;
+            cout << "Y:" << cf.y << "%" << endl;
+        }
+        else if (ptPrev.inside(Rect(700, 200, 200, 100))) {
+            top(src);
+        }
+        else if (ptPrev.inside(Rect(700, 300, 200, 100))) {
+            left(src);
+        }
+        break;
+    }
+    case EVENT_MOUSEMOVE:
+    {
+        if (flags & EVENT_FLAG_LBUTTON) {
+            if (Rect(0, 0, 500, 500).contains(ptPrev) && Rect(0, 0, 500, 500).contains(Point(x, y))) {
+                line(src, ptPrev, Point(x, y), Scalar::all(0), 5, LINE_AA, 0);
+                ptPrev = Point(x, y);
+            }
+        }
+        break;
+    }
+    }
 }
-void Savefile(Mat& src)//save 함수 정의
+void Savefile(Mat& src)
 {
-	String file;//저장할 파일이름을 저장할 객체선언
-	cout << "파일명입력:";
-	cin >> file;//파일이름을 입력
-	Mat dst = src(Rect(3, 3, 496, 496));
-	resize(dst, dst, Size(500, 500));
-	imwrite(file, dst);//컬러영상파일로 프로젝트 폴더에 저장
-	cout << file << "파일이 저장됨" << endl;
+    String file;
+    cout << "파일명입력:";
+    cin >> file;
+    Mat dst = src(Rect(3, 3, 496, 496));
+    resize(dst, dst, Size(500, 500));
+    imwrite(file, dst);
+    cout << file << "파일이 저장됨" << endl;
 }
-void Roadfile(Mat& src)//load 함수 정의
+void Roadfile(Mat& src)
 {
-	String file;//load할 파일이름을 저장할 객체선언
-	cout << "파일명을 입력:";
-	cin >> file;//파일이름을 입력
-	Mat dst = imread(file, IMREAD_COLOR);//dst에 파일을 컬러로 불러옴
-	if (dst.empty()) { cerr << "파일이 존재하지않습니다." << endl; return; }//불러오는 영상이 비어있을때
-	dst(Rect(3, 3, 496, 496)).copyTo(src(Rect(3, 3, 496, 496)));//원본500*500(숫자입력창)에 깊은복사 라인은 유지
-	cout << file << "파일을 불러옴" << endl;
+    String file;
+    cout << "파일명을 입력:";
+    cin >> file;
+    Mat dst = imread(file, IMREAD_COLOR);
+    if (dst.empty()) {
+        cerr << "파일이 존재하지않습니다." << endl;
+        return;
+    }
+    dst(Rect(3, 3, 496, 496)).copyTo(src(Rect(3, 3, 496, 496)));
+    cout << file << "파일을 불러옴" << endl;
 }
-void Clear(Mat& src)//clear 함수정의
+void Clear(Mat& src)
 {
-	Mat dst = src(Rect(3, 3, 496, 496));//dst를 src숫자입력창 얕은복사
-	dst = Scalar::all(255);//dst를 흰색으로 초기화(입력창 초기화)
-	cout << "입력창 삭제됨" << endl;
+    Mat dst = src(Rect(3, 3, 496, 496));
+    dst = Scalar::all(255);
+    cout << "입력창 삭제됨" << endl;
 }
-void Run(Mat& src)//인식함수 정의
+void Run(Mat& src)
 {
-	cout << "인식결과:" << endl;
+    int count_contour = Contour(src);
+    int count_x = top(src);
+    int count_y = left(src);
+    Point cf = CenterPt(src);
+    if (count_contour == 1) {
+        if (count_y == 1) {
+            if (count_x == 1) {
+                if (abs(cf.x - cf.y) >= 20)
+                    cout << "인식한 숫자:7" << endl;
+                else
+                    cout << "인식한 숫자: 1" << endl;
+            }
+            else if (count_x == 2)
+            {
+                if (abs(cf.x - cf.y) >= 15)
+                    cout << "인식한 숫자: 7" << endl;
+                else if (abs(cf.x - cf.y) < 10)
+                    cout << "인식한 숫자: 2" << endl;
+                else
+                    cout << "인식한 숫자: 5" << endl;
+            }
+        }
+        else if (count_y == 3)
+            cout << "인식한 숫자: 3" << endl;
+        else if (count_y == 2) {
+            if (count_x == 2)
+                cout << "인식한 숫자: 5" << endl;
+            else if (count_x == 1)
+            {
+                if (abs(cf.x - cf.y) >= 15)
+                    cout << "인식한 숫자: 7" << endl;
+                else if (abs(cf.x - cf.y) >= 10)
+                    cout << "인식한 숫자: 2" << endl;
+                else
+                    cout << "인식한 숫자: 5" << endl;
+            }
+            else
+                cout << "인식한 숫자: 4" << endl;
+        }
+    }
+    else if (count_contour == 2) {
+        if (count_y == 1) {
+            if (count_x == 1) {
+                if (abs(cf.x - cf.y) >= 5)
+                    cout << "인식한 숫자: 6" << endl;
+                else if (abs(cf.x - cf.y) >= 15)
+                    cout << "인식한 숫자: 9" << endl;
+                else
+                    cout << "인식한 숫자: 0" << endl;
+            }
+            else if (count_x == 2) {
+                if (abs(cf.x - cf.y) >= 10)
+                    cout << "인식한 숫자: 9" << endl;
+                else
+                    cout << "인식한 숫자: 4" << endl;
+            }
+        }
+        else if (count_y == 2) {
+            if (count_x == 1)
+                cout << "인식한 숫자: 9" << endl;
+            else if (count_x == 2)
+                cout << "인식한 숫자: 4" << endl;
+        }
+    }
+    else if (count_contour == 3) {
+        cout << "인식한 숫자: 8" << endl;
+    }
 }
-void Exit()//종료함수 정의
+void Exit()
 {
-	cout << "프로그램 종료" << endl;
-	exit(1);//프로그램 종료함수 호출
-	return;
+    cout << "프로그램 종료" << endl;
+    exit(1);
+    return;
+}
+Mat morph(Mat& src)
+{
+    Mat dst, edge;
+    cvtColor(src(Rect(0, 0, 500, 500)), dst, COLOR_BGR2GRAY);
+    threshold(dst, edge, 150, 255, THRESH_BINARY_INV | THRESH_OTSU);
+    Mat labels, stats, centroids;
+    int cnt = connectedComponentsWithStats(edge, labels, stats, centroids);
+    int morph_size = 5;
+    if (cnt > 2) {
+        while (true) {
+            morphologyEx(edge, edge, MORPH_CLOSE, Mat(morph_size, morph_size, CV_8UC1));
+            cnt = connectedComponentsWithStats(edge, labels, stats, centroids);
+            if (cnt <= 2) break;
+            morph_size += 3;
+        }
+    }
+    return edge;
 }
 Mat bounding_src(Mat& src)
 {
-
+    Mat bin = morph(src);
+    Mat labels, stats, centroids;
+    int cnt = connectedComponentsWithStats(bin, labels, stats, centroids);
+    if (cnt < 2) {
+        cerr << "Bounding box not found. Possibly too small." << endl;
+        return Mat();
+    }
+    int* p = stats.ptr<int>(1);
+    int min_size = 10; // 최소 크기 설정
+    int x = max(0, p[0] - min_size);
+    int y = max(0, p[1] - min_size);
+    int width = min(p[2] + 2 * min_size, bin.cols - x);
+    int height = min(p[3] + 2 * min_size, bin.rows - y);
+    Mat bin_img;
+    bin_img = bin(Rect(x, y, width, height));
+    imshow("bin", bin_img);
+    return bin_img;
 }
-int Contour(Mat& src)//외각선 검출 함수(외각선 개수 리턴)닫기연산을 수행하여 정확도를 높여야함
+//왼쪽 추출
+int left(Mat src) {
+    Mat clone = bounding_src(src);
+    // 이미지의 가로 중심점 계산
+    int centerX = clone.cols / 2;
+    // 가운데를 중심으로 왼쪽 영역 추출
+    Mat left = clone(Rect(0, 0, centerX, clone.rows));
+    // 왼쪽 영역에서 외곽선 찾기
+    vector<vector<Point>> contours;
+    findContours(left, contours, RETR_LIST, CHAIN_APPROX_NONE);
+    // 찾은 외곽선 개수 반환
+    int left_contours = contours.size();
+    cout << "y축으로 반으로 잘랐을때 외각선: " << left_contours << endl;
+    imshow("left", left);
+    return left_contours;
+}
+int top(Mat src)
 {
-	int count_contour = 0;
-	Mat dst, edge,;
-	cvtColor(src(Rect(0, 0, 500, 500)), dst, COLOR_BGR2GRAY);
-	threshold(dst, edge, 150, 255, THRESH_OTSU);
-	vector<vector<Point>> contours;
-	findContours(edge, contours, RETR_LIST, CHAIN_APPROX_NONE);
-	cout << "외각선의 개수:" << contours.size() << endl;//size -1은 외각 배경선을 제외
-	return count_contour;
+    Mat bin = bounding_src(src); // 전처리된 이미지 얻기
+    // 이미지의 세로 중심점 계산
+    int centerY = bin.rows / 2;
+    // 가운데를 중심으로 윗 부분 영역 추출
+    Mat top = bin(Rect(0, 0, bin.cols, centerY));
+    // 윗 부분 영역에서 외곽선 찾기
+    vector<vector<Point>> contours;
+    findContours(top, contours, RETR_LIST, CHAIN_APPROX_NONE);
+    // 찾은 외곽선 개수 반환
+    int top_contours = contours.size();
+    cout << "x축으로 반으로 잘랐을때 외각선: " << top_contours << endl;
+    imshow("top", top);
+    return top_contours;
 }
-float aspectRatio(const Mat& src) {
-	Mat gray, binImg;
-	cvtColor(src(Rect(0, 0, 500, 500)), gray, COLOR_BGR2GRAY);
-	threshold(gray, binImg, 150, 255, THRESH_BINARY_INV);
-	vector<vector<Point>> contours;
-	findContours(binImg, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-	if (!contours.empty()) {
-		Rect boundingBox = boundingRect(contours[0]);
-		cout<< (float)boundingBox.width / (float)boundingBox.height<<endl;
-		return (float)boundingBox.width / (float)boundingBox.height;
-	}
-	return 0.0;
+int Contour(Mat& src)
+{
+    int count_contour = 0;
+    Mat bin = bounding_src(src);
+    if (bin.empty()) {
+        cerr << "Failed to process bounding box." << endl;
+        return 0;
+    }
+    vector<vector<Point>> contours;
+    findContours(bin, contours, RETR_LIST, CHAIN_APPROX_NONE);
+    count_contour = contours.size();
+    cout << "외각선의 개수:" << count_contour << endl;
+    return count_contour;
+}
+Point CenterPt(Mat& src)
+{
+    Mat bin = bounding_src(src);
+    if (bin.empty()) {
+        return Point(-1, -1);
+    }
+    Mat labels, stats, centroids;
+    int cnt = connectedComponentsWithStats(bin, labels, stats, centroids);
+    if (cnt < 2) {
+        return Point(-1, -1);
+    }
+    int width = stats.at<int>(1, 2);
+    int height = stats.at<int>(1, 3);
+    int center_x = centroids.at<double>(1, 0);
+    int center_y = centroids.at<double>(1, 1);
+    int per_x = (double)center_x / width * 100;
+    int per_y = (double)center_y / height * 100;
+    return Point(per_x, per_y);
 }
