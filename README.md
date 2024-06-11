@@ -21,5 +21,5 @@ https://github.com/hyeon1003/opencv-project2/blob/5c3fb95a4f9d27444348d70469f9f8
 https://github.com/hyeon1003/opencv-project2/blob/5c3fb95a4f9d27444348d70469f9f88e34a65ca3/%EA%B8%B0%EB%A7%90%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B82.cpp#L284-L304
 
 
-
+(https://www.youtube.com/watch?v=2EJzdzzUwGU)
 
