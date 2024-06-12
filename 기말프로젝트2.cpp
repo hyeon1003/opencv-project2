@@ -168,16 +168,36 @@ void Run(Mat& src) {
 					cout << "인식한 숫자: 7" << endl;
 			}
 			else if (count_y == 2) {//y축으로 나눈 외각선이 2개일때
-				if (ar * 100 > 50)
-					cout << "인식한 숫자: 5" << endl;
+				if (ar * 100 > 50) {
+					if (abs(cf.x - cf.y) >= 10) {
+						if (ar * 100 < 70)
+							cout << "인식한 숫자: 7" << endl;
+						else
+							cout << "인식한 숫자: 2" << endl;
+					}
+					if (abs(cf.x = cf.y) >= 5)
+					{
+						cout << "인식한 숫자: 2" << endl;
+					}
+					else
+						cout << "인식한 숫자: 5" << endl;
+				}
 				else if (abs(cf.x - cf.y) >= 10)
 					cout << "인식한 숫자: 7" << endl;
+				else
+					cout << "인식한 숫자: 4" << endl;
 			}
 			else if (count_y == 3)
 				cout << "인식한 숫자: 3" << endl;
 		}
+		else if (count_x == 2) {
+			if (count_y == 1) {
+				if (ar * 100 > 80)
+					cout << "인식한 숫자: 4" << endl;
+			}
+		}
 	}
-	else if (count_contour == 2) {//x축으로 나눈 외각선이 2개일때
+	else if (count_contour == 2) {//외각선이 2개일때
 		if (count_x==1)
 		{
 			if (count_y == 1)
@@ -186,6 +206,8 @@ void Run(Mat& src) {
 					cout << "인식한 숫자: 0" << endl;
 				else if (ar * 100 <= 70)
 					cout << "인식한 숫자: 6" << endl;
+				else if (ar * 100 >= 70)
+					cout << "인식한 숫자: 0" << endl;
 			}
 			else if (count_y == 2) {//y축으로 나눌때 외각선이 2개일때
 				cout << "인식한 숫자: 4" << endl;
