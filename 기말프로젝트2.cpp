@@ -168,20 +168,14 @@ void Run(Mat& src) {
 					cout << "인식한 숫자: 7" << endl;
 			}
 			else if (count_y == 2) {//y축으로 나눈 외각선이 2개일때
-				if (ar * 100 > 50) {
-					if (abs(cf.x - cf.y) >= 10) {
-						if (ar * 100 < 70)
-							cout << "인식한 숫자: 7" << endl;
-						else
-							cout << "인식한 숫자: 2" << endl;
-					}
-					if (abs(cf.x = cf.y) >= 5)
-					{
+				if (ar * 100 > 90) {
+					if (abs(cf.x - cf.y) >= 10)
 						cout << "인식한 숫자: 2" << endl;
-					}
 					else
 						cout << "인식한 숫자: 5" << endl;
 				}
+				else if (abs(cf.x-cf.y)<7)
+					cout << "인식한 숫자: 5" << endl;
 				else if (abs(cf.x - cf.y) >= 10)
 					cout << "인식한 숫자: 7" << endl;
 				else
@@ -198,15 +192,15 @@ void Run(Mat& src) {
 		}
 	}
 	else if (count_contour == 2) {//외각선이 2개일때
-		if (count_x==1)
+		if (count_x == 1)
 		{
 			if (count_y == 1)
 			{
-				if (abs(cf.x - cf.y) < 7)
-					cout << "인식한 숫자: 0" << endl;
-				else if (ar * 100 <= 70)
+				if (ar * 100 <= 60 )
 					cout << "인식한 숫자: 6" << endl;
-				else if (ar * 100 >= 70)
+				else if(abs(cf.x-cf.y)>=10)
+					cout << "인식한 숫자: 6" << endl;
+				else
 					cout << "인식한 숫자: 0" << endl;
 			}
 			else if (count_y == 2) {//y축으로 나눌때 외각선이 2개일때
@@ -292,10 +286,6 @@ int Contour(Mat& src)
 {
 	int count_contour = 0;
 	Mat bin = bounding_src(src);
-	if (bin.empty()) {
-		cerr << "Failed to process bounding box." << endl;
-		return 0;
-	}
 	vector<vector<Point>> contours;
 	findContours(bin, contours, RETR_LIST, CHAIN_APPROX_NONE);
 	count_contour = contours.size();
